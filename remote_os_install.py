@@ -4,9 +4,11 @@ example: python remote_os_install.py --img chromiumos_test_image.bin --ip ips.tx
 ## python script, iplist.txt, and image.bin must be in same folder ##
 """
 
-import os, sys, logging, time
-import argparse, subprocess, multiprocessing
+import os, sys, logging
+import argparse, subprocess
+import multiprocessing, time
 from functools import partial
+from collections import defaultdict
 
 USER='root'
 # CMD='cros flash --log-level info --no-reboot'
@@ -49,7 +51,8 @@ def is_host_live(ip):
 
 def remote_os_flash(ip, path):
     #add a dict() that will return the IPs and whether they passed or failed flashes
-    results=dict()
+    flashDict = dict()
+    flashing_status = "FAIL"
     IP=ip
     os.chdir(GSRC)
     if is_host_live(IP) == True:  
@@ -60,27 +63,33 @@ def remote_os_flash(ip, path):
         logging.info("Flashing OS to %s." % IP)
         for line in iter(p.stdout.readline, b''):
             line=bytes.decode(line)
+            if ('cros flash completed successfully' or 'Stateful update completed' or 'Update performed successfully') in line.rstrip():
+                flashing_status = "PASS"
+                flashDict[IP]=flashing_status
+                sys.stdout.flush()
+                logging.info("\n%s\n"%line.rstrip)
             if ('Reboot has not completed' or 'Device update failed' or 'Stateful update failed') in line.rstrip():
+                flashDict[IP]=flashing_status
                 sys.stdout.flush()
                 logging.info("\n%s\n"%line.rstrip)
-            if ('Stateful update completed' or 'Update performed successfully') in line.rstrip():
-                sys.stdout.flush()
-                logging.info("\n%s\n"%line.rstrip)
-            # if ( or 'Update performed successfully') in line.rstrip():
-            #     sys.stdout.flush()
-            #     logging.info("\n%s"%line.rstrip)                
             sys.stdout.flush()
             print("IP: %s   %s" % (ip,line.rstrip()))
+        return flashDict
     else:
         logging.info("HOST: %s is not live." % IP)
+        flashDict[IP]=flashing_status
+        return flashDict
     
         
 if __name__ == '__main__': 
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
     t1=time.perf_counter()
+    results=dict()
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
-        pool.map(partial(remote_os_flash,path=IMG), IP_TUP) 
+        results=pool.map(partial(remote_os_flash,path=IMG), IP_TUP) 
+    print ("\n*************************************************************")
+    print(results)  
     t2=time.perf_counter()
     tot=t2-t1
     minutes=tot/60
