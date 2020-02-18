@@ -50,7 +50,6 @@ def is_host_live(ip):
 
 
 def remote_os_flash(ip, path):
-    #add a dict() that will return the IPs and whether they passed or failed flashes
     flashDict = dict()
     flashing_status = "FAIL"
     IP=ip
@@ -60,7 +59,7 @@ def remote_os_flash(ip, path):
         p=subprocess.Popen(input,stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,shell=True)
         logging.info("HOST: %s is live." % IP)
-        logging.info("Flashing OS to %s." % IP)
+        logging.info("Flashing ChromeOS to %s." % IP)
         for line in iter(p.stdout.readline, b''):
             line=bytes.decode(line)
             if ('cros flash completed successfully' or 'Stateful update completed' or 'Update performed successfully') in line.rstrip():
@@ -68,7 +67,7 @@ def remote_os_flash(ip, path):
                 flashDict[IP]=flashing_status
                 sys.stdout.flush()
                 logging.info("\n%s\n"%line.rstrip)
-            if ('Reboot has not completed' or 'Device update failed' or 'Stateful update failed') in line.rstrip():
+            if ('cros flash failed before completing' or 'Device update failed' or 'Stateful update failed') in line.rstrip():
                 flashDict[IP]=flashing_status
                 sys.stdout.flush()
                 logging.info("\n%s\n"%line.rstrip)
@@ -82,10 +81,10 @@ def remote_os_flash(ip, path):
     
         
 if __name__ == '__main__': 
+    t1=time.perf_counter()
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
-    t1=time.perf_counter()
-    results=dict()
+    results = dict()
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
         results=pool.map(partial(remote_os_flash,path=IMG), IP_TUP) 
     print ("\n*************************************************************")
