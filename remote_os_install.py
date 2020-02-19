@@ -10,14 +10,13 @@ import multiprocessing, time
 from functools import partial
 from collections import defaultdict
 
-USER='root'
-# CMD='cros flash --log-level info --no-reboot'
-CMD='cros flash --log-level info'
-CWD=os.getcwd()
-GSRC=os.path.expanduser('~/google_source')
-IP=str()
-IP_LIST=list()
-IP_TUP=tuple()
+user='root'
+# command='cros flash --log-level info --no-reboot'
+command='cros flash --log-level info'
+curr_dir=os.getcwd()
+google_src=os.path.expanduser('~/google_source')
+list_ip=list()
+tuple_ip=tuple()
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--img',nargs='?',type=str,metavar=('image.bin'),
@@ -26,20 +25,19 @@ parser.add_argument('--ip',nargs='?',type=str,metavar=('IP_list.txt'),
         default='IPs.txt',help='list of IPs to flash')
 args=parser.parse_args()
 
-IMG=('%s/%s' % (CWD,args.img))
-TXT=('%s/%s' % (CWD,args.ip))
+img_path=('%s/%s' % (curr_dir,args.img))
+ip_txt=('%s/%s' % (curr_dir,args.ip))
 
-with open(TXT) as f:
+with open(ip_txt) as f:
     ip_lines=f.readlines()
     for ip in ip_lines:
-        IP_LIST.append(ip.rstrip())
-    IP_TUP=IP_LIST
+        list_ip.append(ip.rstrip())
+    tuple_ip=list_ip
 
 
-def is_host_live(ip):
-    host=ip
+def is_host_live(dut_ip):
     try:
-        result=subprocess.call(('ping -c 1 %s;' % host),
+        result=subprocess.call(('ping -c 1 %s;' % dut_ip),
             stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
     except:
         return False
@@ -49,34 +47,33 @@ def is_host_live(ip):
         return False
 
 
-def remote_os_flash(ip, path):
+def remote_os_flash(dut_ip, path):
     flashDict = dict()
     flashing_status = "FAIL"
-    IP=ip
-    os.chdir(GSRC)
-    if is_host_live(IP) == True:  
-        input=('%s %s@%s:// %s' % (CMD,USER,IP,IMG))
+    os.chdir(google_src)
+    if is_host_live(dut_ip) == True:  
+        input=('%s %s@%s:// %s' % (command,user,dut_ip,img_path))
         p=subprocess.Popen(input,stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,shell=True)
-        logging.info("HOST: %s is live." % IP)
-        logging.info("Flashing ChromeOS to %s." % IP)
+        logging.info("HOST: %s is live." % dut_ip)
+        logging.info("Flashing ChromeOS to %s." % dut_ip)
         for line in iter(p.stdout.readline, b''):
             line=bytes.decode(line)
             if ('cros flash completed successfully' or 'Stateful update completed' or 'Update performed successfully') in line.rstrip():
                 flashing_status = "PASS"
-                flashDict[IP]=flashing_status
+                flashDict[dut_ip]=flashing_status
                 sys.stdout.flush()
                 logging.info("\n%s\n"%line.rstrip)
             if ('cros flash failed before completing' or 'Device update failed' or 'Stateful update failed') in line.rstrip():
-                flashDict[IP]=flashing_status
+                flashDict[dut_ip]=flashing_status
                 sys.stdout.flush()
                 logging.info("\n%s\n"%line.rstrip)
             sys.stdout.flush()
             print("IP: %s   %s" % (ip,line.rstrip()))
         return flashDict
     else:
-        logging.info("HOST: %s is not live." % IP)
-        flashDict[IP]=flashing_status
+        logging.info("HOST: %s is not live." % dut_ip)
+        flashDict[dut_ip]=flashing_status
         return flashDict
     
         
@@ -86,7 +83,7 @@ if __name__ == '__main__':
     logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
     results = dict()
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
-        results=pool.map(partial(remote_os_flash,path=IMG), IP_TUP) 
+        results=pool.map(partial(remote_os_flash,path=img_path), tuple_ip) 
     print ("\n*************************************************************")
     print(results)  
     t2=time.perf_counter()
