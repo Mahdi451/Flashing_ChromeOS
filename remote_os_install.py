@@ -23,7 +23,7 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--img',nargs='?',type=str,metavar=('image.bin'),
         default='chromiumos_test_image.bin',help='ChromiumOS test image name')
 parser.add_argument('--ip',nargs='?',type=str,metavar=('IP_list.txt'),
-        default='ips.txt',help='list of IPs to flash')
+        default='IPs.txt',help='list of IPs to flash')
 args=parser.parse_args()
 
 IMG=('%s/%s' % (CWD,args.img))
