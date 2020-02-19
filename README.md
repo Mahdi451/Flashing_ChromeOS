@@ -13,7 +13,7 @@ README.md  chromiumos_test_image.bin  remote_os_install.py  ips.txt
 Insert the device IPs into *__ips.txt__* and you are ready to run the script!
 
 ```
-$ python remote_os_install.py |& tee output_log.txt
+$ python remote_os_install.py
 ```
 
 
