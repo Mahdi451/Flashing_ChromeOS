@@ -65,6 +65,7 @@ def remote_os_flash(dut_ip, path):
                 flashing_status = "PASS"
                 flashDict[dut_ip]=flashing_status
             if ('cros flash failed before completing' or 'Device update failed' or 'Stateful update failed') in line.rstrip():
+                flashing_status = "FAIL"
                 flashDict[dut_ip]=flashing_status
         return flashDict
     else:
