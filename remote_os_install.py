@@ -59,14 +59,15 @@ def remote_os_flash(dut_ip, path):
         logging.info("Flashing ChromeOS to %s." % dut_ip)
         for line in iter(p.stdout.readline, b''):
             line=bytes.decode(line)
-            # sys.stdout.flush()
             print("IP: %s    %s" % (ip,line.rstrip()))
             if ('cros flash completed successfully' or 'Stateful update completed' or 'Update performed successfully') in line.rstrip():
                 flashing_status = "PASS"
                 flashDict[dut_ip]=flashing_status
-            if ('cros flash failed before completing' or 'Device update failed' or 'Stateful update failed') in line.rstrip():
-                flashing_status = "FAIL"
+                return flashDict
+            elif ('cros flash failed before completing' or 'Device update failed' or 'Stateful update failed') in line.rstrip():
                 flashDict[dut_ip]=flashing_status
+                return flashDict
+        flashDict[dut_ip]=flashing_status
         return flashDict
     else:
         logging.info("HOST: %s is not live." % dut_ip)
