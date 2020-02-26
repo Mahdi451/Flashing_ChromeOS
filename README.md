@@ -1,6 +1,6 @@
 # Flashing ChromeOS
 
-This script will allow you to flash chromeos test images on multiple devices simultaneously.
+This script allows you to flash ChromeOS to multiple devices at the same time.
 
 ## Running
 
