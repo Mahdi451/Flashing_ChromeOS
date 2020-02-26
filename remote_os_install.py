@@ -76,6 +76,9 @@ def remote_os_flash(dut_ip, path):
     
         
 if __name__ == '__main__': 
+    """  reimplement with ChromeTestLib and add option to e-mail results   """
+    # email=input("Please enter an E-mail: ")
+    # email='results.cssdesk@gmail.com'
     t1=time.perf_counter()
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
@@ -83,7 +86,9 @@ if __name__ == '__main__':
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
         results=pool.map(partial(remote_os_flash,path=img_path), tuple_ip) 
     print ("\n*************************************************************")
-    print(results)  
+    print(results) 
+    # os.system("mail -s \"CB/EC Flash Results\" %s < %s/flash_info.txt" % (email,curr_dir))
+    # os.remove("%s/flash_info.txt" % curr_dir) 
     t2=time.perf_counter()
     tot=t2-t1
     minutes=tot/60
