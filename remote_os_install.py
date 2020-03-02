@@ -100,7 +100,7 @@ if __name__ == '__main__':
     """  reimplement with ChromeTestLib and add option to e-mail results   """
     os.remove(output)
     os.remove(flash_info)
-    email=input("Please enter an E-mail to receive version comparisons (or press enter to skip): ")
+    email=input("Please enter an E-mail to receive logs and results (or press enter to skip): ")
     # email='results.cssdesk@gmail.com'
     t1=time.perf_counter()
     format = "%(asctime)s: %(message)s"
