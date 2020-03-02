@@ -76,9 +76,9 @@ def remote_os_flash(dut_ip, path):
             logging.info("Flashing ChromeOS to %s." % dut_ip)
             for line in iter(p.stdout.readline, b''):
                 line=bytes.decode(line)
-                print("IP: %s  %s" % (ip.strip('\n'),line.rstrip()))
+                print("IP: %s  %s" % (dut_ip.strip('\n'),line.rstrip()))
                 f.flush()
-                f.write("IP: %s  %s\n" % (ip.strip('\n'),line.rstrip()))
+                f.write("IP: %s  %s\n" % (dut_ip.strip('\n'),line.rstrip()))
                 if ('cros flash completed successfully' or 'Stateful update completed' or 'Update performed successfully') in line.rstrip():
                     flashing_status = "PASS"
                     flashDict[dut_ip]=flashing_status
@@ -98,8 +98,10 @@ def remote_os_flash(dut_ip, path):
 
 if __name__ == '__main__': 
     """  reimplement with ChromeTestLib and add option to e-mail results   """
-    # email=input("Please enter an E-mail to receive version comparisons (or press enter to skip): ")
-    email='results.cssdesk@gmail.com'
+    os.remove(output)
+    os.remove(flash_info)
+    email=input("Please enter an E-mail to receive version comparisons (or press enter to skip): ")
+    # email='results.cssdesk@gmail.com'
     t1=time.perf_counter()
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
@@ -110,8 +112,6 @@ if __name__ == '__main__':
     print(results) 
     convert_to_text(results)
     os.system("mail -s \"ChromeOS Flash Results\" -t %s -A %s < %s" % (email,output,flash_info))
-    # os.remove(output)
-    # os.remove(flash_info)
     t2=time.perf_counter()
     tot=t2-t1
     minutes=tot/60
