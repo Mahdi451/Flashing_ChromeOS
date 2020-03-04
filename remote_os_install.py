@@ -6,7 +6,7 @@ example: python remote_os_install.py --img chromiumos_test_image.bin --ip ips.tx
 
 import os, sys, logging
 import argparse, subprocess
-import multiprocessing, datetime, time
+import multiprocessing, time
 from functools import partial
 from collections import defaultdict
 
