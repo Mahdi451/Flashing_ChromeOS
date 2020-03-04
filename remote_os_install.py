@@ -6,7 +6,7 @@ example: python remote_os_install.py --img chromiumos_test_image.bin --ip ips.tx
 
 import os, sys, logging
 import argparse, subprocess
-import multiprocessing, time
+import multiprocessing, datetime, time
 from functools import partial
 from collections import defaultdict
 
@@ -14,6 +14,7 @@ user='root'
 # command='cros flash --log-level info --no-reboot'
 command='cros flash --log-level info'
 curr_dir=os.getcwd()
+log_folder=os.getcwd()+"/flash_logs"
 google_src=os.path.expanduser('~/google_source')
 list_ip=list()
 tuple_ip=tuple()
@@ -100,18 +101,18 @@ if __name__ == '__main__':
     """  reimplement with ChromeTestLib and add option to e-mail results   """
     os.remove(output)
     os.remove(flash_info)
+    logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
     email=input("Please enter an E-mail to receive logs and results (or press enter to skip): ")
     # email='results.cssdesk@gmail.com'
     t1=time.perf_counter()
     format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
     results = dict()
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
         results = pool.map(partial(remote_os_flash, path = img_path), tuple_ip) 
     print ("\n*************************************************************")
     print(results) 
     convert_to_text(results)
-    os.system("mail -s \"ChromeOS Flash Results\" -t %s -A %s < %s" % (email,output,flash_info))
+    os.system("mail -s \"ChromeOS Flash Results\" " + email + " -A " + output + " < " + flash_info)
     t2=time.perf_counter()
     tot=t2-t1
     minutes=tot/60
